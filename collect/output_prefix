@@ -1,0 +1,15 @@
+#!/bin/bash
+
+algorithms=("bubble_sort" "heap_sort")
+optimization_levels=("-O0" "-O1" "-O2" "-O3" "-Ofast")
+date=$(date +%Y%m%d)
+
+for algorithm in "${algorithms[@]}"; do
+    for level in "${optimization_levels[@]}"; do
+        output_prefix="${algorithm}_${level}_${date}"
+        gcc $level -o "${output_prefix}" "${algorithm}.c"
+        time_output=$(time ./${output_prefix} 2>&1)
+        real_time=$(echo $time_output | awk '{print $4}')
+        echo "${output_prefix}, ${real_time}" >> "${output_prefix}_time.txt"
+    done
+done
