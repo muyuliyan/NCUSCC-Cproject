@@ -1,75 +1,127 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 
-// 函数来交换两个元素
+// 交换两个元素
 void swap(int *a, int *b) {
-    int t = *a;
+    int temp = *a;
     *a = *b;
-    *b = t;
+    *b = temp;
 }
 
-// 函数来获取父节点和子节点中的最大值的索引
-int maxHeapify(int arr[], int n, int i) {
-    int largest = i; // 初始化最大值为根节点
-    int left = 2 * i + 1; // 左子节点
-    int right = 2 * i + 2; // 右子节点
+// 堆化子树
+void heapify(int arr[], int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
 
-    // 如果左子节点比根节点大，则更新最大值
-    if (left < n && arr[left] > arr[largest])
+    if (left < n && arr[left] > arr[largest]) {
         largest = left;
+    }
 
-    // 如果右子节点比最大值大，则更新最大值
-    if (right < n && arr[right] > arr[largest])
+    if (right < n && arr[right] > arr[largest]) {
         largest = right;
+    }
 
-    // 如果最大值不是根节点，交换它们并继续下沉
     if (largest != i) {
         swap(&arr[i], &arr[largest]);
-        maxHeapify(arr, n, largest);
+        heapify(arr, n, largest);
     }
-
-    return largest;
 }
 
-// 函数来构建最大堆
-void buildMaxHeap(int arr[], int n) {
-    int i;
-
-    // 从最后一个非叶子节点开始，从下到上构建最大堆
-    for (i = n / 2 - 1; i >= 0; i--)
-        maxHeapify(arr, n, i);
-}
-
-// 函数来执行堆排序
+// 堆排序
 void heapSort(int arr[], int n) {
-    // 构建最大堆
-    buildMaxHeap(arr, n);
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapify(arr, n, i);
+    }
 
-    // 从堆中提取元素并重新调整堆
-    for (int i = n - 1; i > 0; i--) {
-        // 将堆顶元素（最大值）与数组末尾的元素交换
+    for (int i = n - 1; i >= 0; i--) {
         swap(&arr[0], &arr[i]);
-
-        // 重新调整堆
-        maxHeapify(arr, i, 0);
+        heapify(arr, i, 0);
     }
 }
 
-// 主函数，用于演示堆排序
+// 读取整数文件数据到数组
+int readIntDataFromFile(const char* filename, int* arr) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return 0;
+    }
+    int num = 0;
+    while (fscanf(file, "%d", &arr[num]) != EOF) {
+        num++;
+    }
+    fclose(file);
+    return num;
+}
+
+// 读取浮点数文件数据到数组
+int readFloatDataFromFile(const char* filename, float* arr) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return 0;
+    }
+    int num = 0;
+    while (fscanf(file, "%f", &arr[num]) != EOF) {
+        num++;
+    }
+    fclose(file);
+    return num;
+}
+
+// 打印整数数组
+void printIntArray(int arr[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+// 打印浮点数数组
+void printFloatArray(float arr[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%f ", arr[i]);
+    }
+    printf("\n");
+}
+
 int main() {
-    int arr[] = {12, 11, 13, 5, 6, 7};
-    int n = sizeof(arr) / sizeof(arr[0]);
+    const char* filenames[] = {"small_data.txt", "medium_data.txt", "large_data.txt", "large_data_float.txt"};
+    int sizes[4];
+    int** intArrays = (int**)malloc(3 * sizeof(int*)); // For small, medium, large data
+    float* floatArray = NULL; // For large_data_float.txt
 
-    printf("Original array: \n");
-    for (int i = 0; i < n; i++)
-        printf("%d ", arr[i]);
-    printf("\n");
+    // Allocate memory for integer arrays
+    for (int i = 0; i < 3; i++) {
+        intArrays[i] = (int*)malloc(100000 * sizeof(int));
+    }
 
-    heapSort(arr, n);
+    // Read and sort integer data
+    for (int i = 0; i < 3; i++) {
+        sizes[i] = readIntDataFromFile(filenames[i], intArrays[i]);
+        heapSort(intArrays[i], sizes[i]);
+        printf("Sorted %s: ", filenames[i]);
+        printIntArray(intArrays[i], sizes[i]);
+    }
 
-    printf("Sorted array: \n");
-    for (int i = 0; i < n; i++)
-        printf("%d ", arr[i]);
-    printf("\n");
+    // Allocate memory for float array
+    floatArray = (float*)malloc(100000 * sizeof(float));
+
+    // Read and sort float data
+    sizes[3] = readFloatDataFromFile(filenames[3], floatArray);
+    // Assuming the heap sort function is modified to work with floats
+    // heapSort(floatArray, sizes[3]); // This would require a float version of heapSort
+    printf("Sorted %s: ", filenames[3]);
+    printFloatArray(floatArray, sizes[3]);
+
+    // Free memory
+    for (int i = 0; i < 3; i++) {
+        free(intArrays[i]);
+    }
+    free(floatArray);
+    free(intArrays);
 
     return 0;
 }

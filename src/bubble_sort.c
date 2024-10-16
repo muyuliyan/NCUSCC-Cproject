@@ -1,38 +1,119 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
-void bubbleSort(int arr[], int n) {
+void bubbleSortInt(int arr[], int n) {
     bool swapped;
     for (int i = 0; i < n - 1; i++) {
         swapped = false;
         for (int j = 0; j < n - i - 1; j++) {
             if (arr[j] > arr[j + 1]) {
-                // 交换 arr[j] 和 arr[j + 1]
                 int temp = arr[j];
                 arr[j] = arr[j + 1];
                 arr[j + 1] = temp;
                 swapped = true;
             }
         }
-        // 如果在这一轮没有交换过，说明数组已经有序，可以提前结束
         if (!swapped) {
             break;
         }
     }
 }
 
-// 这个函数可以用来在排序后打印数组，但在导入数据时不会使用
-void printArray(int arr[], int size) {
-    for (int i = 0; i < size; i++) {
-        // 这里可以替换为其他方式来处理排序后的数据
-        // 例如，可以将其保存到文件或者进行其他操作
+void bubbleSortFloat(float arr[], int n) {
+    bool swapped;
+    for (int i = 0; i < n - 1; i++) {
+        swapped = false;
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                float temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+                swapped = true;
+            }
+        }
+        if (!swapped) {
+            break;
+        }
     }
 }
 
-// 主函数，用于演示冒泡排序
+int readIntDataFromFile(const char* filename, int* arr) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return 0;
+    }
+    int num = 0;
+    while (fscanf(file, "%d", &arr[num]) != EOF) {
+        num++;
+    }
+    fclose(file);
+    return num;
+}
+
+int readFloatDataFromFile(const char* filename, float* arr) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return 0;
+    }
+    int num = 0;
+    while (fscanf(file, "%f", &arr[num]) != EOF) {
+        num++;
+    }
+    fclose(file);
+    return num;
+}
+
+void printIntArray(int arr[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+void printFloatArray(float arr[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("%f ", arr[i]);
+    }
+    printf("\n");
+}
+
 int main() {
-    int arr[] = {64, 34, 25, 12, 22, 11, 90};
-    int n = sizeof(arr) / sizeof(arr[0]);
-    bubbleSort(arr, n);
-    printArray(arr, n); // 这里可以替换为其他方式来处理排序后的数据
+    const char* filenames[] = {"small_data.txt", "medium_data.txt", "large_data.txt", "large_data_float.txt"};
+    int sizes[4];
+    int** intArrays = (int**)malloc(3 * sizeof(int*)); // For small, medium, large data
+    float* floatArray = NULL; // For large_data_float.txt
+
+    // Allocate memory for integer arrays
+    for (int i = 0; i < 3; i++) {
+        intArrays[i] = (int*)malloc(100000 * sizeof(int));
+    }
+
+    // Read and sort integer data
+    for (int i = 0; i < 3; i++) {
+        sizes[i] = readIntDataFromFile(filenames[i], intArrays[i]);
+        bubbleSortInt(intArrays[i], sizes[i]);
+        printf("Sorted %s: ", filenames[i]);
+        printIntArray(intArrays[i], sizes[i]);
+    }
+
+    // Allocate memory for float array
+    floatArray = (float*)malloc(100000 * sizeof(float));
+
+    // Read and sort float data
+    sizes[3] = readFloatDataFromFile(filenames[3], floatArray);
+    bubbleSortFloat(floatArray, sizes[3]);
+    printf("Sorted %s: ", filenames[3]);
+    printFloatArray(floatArray, sizes[3]);
+
+    // Free memory
+    for (int i = 0; i < 3; i++) {
+        free(intArrays[i]);
+    }
+    free(floatArray);
+    free(intArrays);
+
     return 0;
 }
