@@ -2,15 +2,22 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-// 交换两个元素
-void swap(int *a, int *b) {
+// 交换两个整数元素
+void swapInt(int *a, int *b) {
     int temp = *a;
     *a = *b;
     *b = temp;
 }
 
-// 堆化子树
-void heapify(int arr[], int n, int i) {
+// 交换两个浮点数元素
+void swapFloat(float *a, float *b) {
+    float temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+// 堆化子树（整数版本）
+void heapifyInt(int arr[], int n, int i) {
     int largest = i;
     int left = 2 * i + 1;
     int right = 2 * i + 2;
@@ -24,20 +31,52 @@ void heapify(int arr[], int n, int i) {
     }
 
     if (largest != i) {
-        swap(&arr[i], &arr[largest]);
-        heapify(arr, n, largest);
+        swapInt(&arr[i], &arr[largest]);
+        heapifyInt(arr, n, largest);
     }
 }
 
-// 堆排序
-void heapSort(int arr[], int n) {
+// 堆化子树（浮点数版本）
+void heapifyFloat(float arr[], int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
+
+    if (left < n && arr[left] > arr[largest]) {
+        largest = left;
+    }
+
+    if (right < n && arr[right] > arr[largest]) {
+        largest = right;
+    }
+
+    if (largest != i) {
+        swapFloat(&arr[i], &arr[largest]);
+        heapifyFloat(arr, n, largest);
+    }
+}
+
+// 堆排序（整数版本）
+void heapSortInt(int arr[], int n) {
     for (int i = n / 2 - 1; i >= 0; i--) {
-        heapify(arr, n, i);
+        heapifyInt(arr, n, i);
     }
 
     for (int i = n - 1; i >= 0; i--) {
-        swap(&arr[0], &arr[i]);
-        heapify(arr, i, 0);
+        swapInt(&arr[0], &arr[i]);
+        heapifyInt(arr, i, 0);
+    }
+}
+
+// 堆排序（浮点数版本）
+void heapSortFloat(float arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapifyFloat(arr, n, i);
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        swapFloat(&arr[0], &arr[i]);
+        heapifyFloat(arr, i, 0);
     }
 }
 
@@ -101,7 +140,7 @@ int main() {
     // Read and sort integer data
     for (int i = 0; i < 3; i++) {
         sizes[i] = readIntDataFromFile(filenames[i], intArrays[i]);
-        heapSort(intArrays[i], sizes[i]);
+        heapSortInt(intArrays[i], sizes[i]);
         printf("Sorted %s: ", filenames[i]);
         printIntArray(intArrays[i], sizes[i]);
     }
@@ -111,8 +150,7 @@ int main() {
 
     // Read and sort float data
     sizes[3] = readFloatDataFromFile(filenames[3], floatArray);
-    // Assuming the heap sort function is modified to work with floats
-    // heapSort(floatArray, sizes[3]); // This would require a float version of heapSort
+    heapSortFloat(floatArray, sizes[3]);
     printf("Sorted %s: ", filenames[3]);
     printFloatArray(floatArray, sizes[3]);
 

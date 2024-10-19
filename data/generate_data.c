@@ -26,8 +26,8 @@ void generate_random_data(const char* filename, int num_elements, int is_float) 
 
 int main() {
     // Generate different scales of data
-    generate_random_data("small_data.txt", 100, 0);
-    generate_random_data("medium_data.txt", 1000, 0);
+    generate_random_data("small_data.txt", 100000, 0); // Change here
+    generate_random_data("medium_data.txt", 100000, 0); // Change here
     generate_random_data("large_data.txt", 100000, 0);
     generate_random_data("large_data_float.txt", 100000, 1);
 
