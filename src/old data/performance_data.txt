@@ -1,0 +1,3 @@
+Algorithm,Optimization,Data Set,User Time (s),System Time (s),CPU Time (s),Max RSS (MiB)
+bubble_sort,-O0,small_data.txt,11.30,0.42,13.03,2560
+bubble_sort,-O0,medium_data.txt,10.54,0.50,12.17,2176

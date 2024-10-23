@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import csv
 import matplotlib.pyplot as plt
 
@@ -9,9 +10,9 @@ with open('performance_data.csv', 'r') as file:
         # 将 Algorithm 列的值转换为大写
         row['Algorithm'] = row['Algorithm'].upper()
         # 去除时间列中的 'u' 字符，并转换为浮点数
-        row['User Time (s)'] = float(row['User Time (s)'].replace('u', '')) if row['User Time (s)'] else None
-        row['System Time (s)'] = float(row['System Time (s)'].replace('u', '')) if row['System Time (s)'] else None
-        row['CPU Time (s)'] = float(row['CPU Time (s)'].replace('u', '')) if row['CPU Time (s)'] else None
+        row['User Time (s)'] = float(row['User Time (s)'].split('\n')[1].replace('u', '')) if row['User Time (s)'] else None
+        row['System Time (s)'] = float(row['System Time (s)'].split('\n')[1].replace('s', '')) if row['System Time (s)'] else None
+        row['CPU Time (s)'] = float(row['CPU Time (s)'].split('\n')[1].replace('t', '')) if row['CPU Time (s)'] else None
         data.append(row)
 
 # 准备绘图数据
