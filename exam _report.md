@@ -68,6 +68,7 @@ _____
 [![pAd1Rvn.jpg](https://s21.ax1x.com/2024/10/22/pAd1Rvn.jpg)](https://imgse.com/i/pAd1Rvn)
 [![pAd1IET.jpg](https://s21.ax1x.com/2024/10/22/pAd1IET.jpg)](https://imgse.com/i/pAd1IET)  
 
+___
 ### 二、冒泡排序、基础堆排序和斐波那契堆排序的实现细节  
 **实验目的：考验代码书写硬实力，理解排序结构和实现原理，并学会导入数据基本测试查错和实际运用**  
 ***1.冒泡排序***  
@@ -156,45 +157,96 @@ int main() {
     printf("Sorted %s: ", filenames[3]);
     printFloatArray(floatArray, sizes[3]);
 ```
-**<font face="仿宋" font color=bule>对于我所生成的浮点数</font>  
+**<font face="仿宋" font color=bule>对于我所生成的浮点数</font>    
+
+
+**发现问题：**  
+1.数据调用和脚本实现  
+
+
+
+2.斐波那契堆排序的代码实现  
+
+
+**解决方案：**  
+1.
+
+
+2.
+
+
+___
+## 三、测试数据的生成方法  
+**实验目的：学会使用脚本生成不同规模的数据，用于程序的性能和效率测试**   
+***1.合成随机数代码脚本细节***  
+(1)不同规模数据的生成
+```
+void generate_random_data(const char* filename, int num_elements, int is_float) {
+    FILE* file = fopen(filename, "w");
+    if (file == NULL) {
+        perror("Unable to open file");
+        return;
+    }
+
+    srand((unsigned int)time(NULL));
+
+    for (int i = 0; i < num_elements; ++i) {
+        if (is_float) {
+            double random_float = (double)rand() / RAND_MAX * 10000;
+            fprintf(file, "%f\n", random_float);
+        } else {
+            int random_int = rand() % 10000;
+            fprintf(file, "%d\n", random_int);
+        }
+    }
+    fclose(file);
+}
+```  
+**该C语言随机数生成器主要以当前系统时间时间（time(NULL)）作为种子，以确保生成数据的随机性；如果is_foat值为真，则生成随机浮点数，通过rand()转化浮点数在进行增位减位获得10000以内浮点数，随机整数的生成逻辑类似**  
+(2)将100000条数据导入csv文件，这里我选择了shell脚本直接实现实验数据的获取和导入，处理脚本时发现了容易忽视的小问题，文件名中间一定要记得打空格，不然问题真的很难检索:cry:
+```  
+# 定义测试数据文件数组
+test_data_files=("small_data.txt" "medium_data.txt" "large_data.txt" "small_data_float.txt" "medium_data_float.txt" "large_data_float.txt")
+```  
+(3)估测时间复杂度与实验数据的比较  
+在非最佳情况下的时间复杂度理应是 O(n^2)，后续实验数据也能佐证这一点，实验数据吻合较好；基础堆排序
+**发现问题：**  
+1.数据文件名称和文件引用名称不同  
+**解决方案：** 
+1.编写代码时一定要查清文件名的大小写、分隔符、文件后缀，以防后续问题  
+___  
+## 四、不同编译优化等级下的性能对比结果  
+**实验目的：了解表现程序算法优化性能的等级，体会算法优化对不同排序的不同程度，对比冒泡排序和基础堆排序的优化效果，分析二者特点**
+***1.编译优化等级种类***  
+  
+***2.性能对比结果***  
+堆排序的运行时间在不同优化等级下变化幅度小且运行时间短，排序效率高，而相较之下冒泡排序时间变化幅度明显，运行时间较长，排序效率较低较为原始  
+> 详细数据可见文件[performance_data.csv]  
+
+
+**发现问题：**  
+1.没有去掉csv文件中的出数字、小数点外的英文字母，导致图像绘制出现阻碍  
+2.没有理解时间复杂度的表示含义  
+**解决方法：** 
+1.
+2.
+
+___
+## 五、数据可视化  
+**实验目的：直观观察感受数据变化和排序算法性能，并掌握搭建虚拟环境使用Python类脚本图库进行可视化的能力**  
+***1.Python虚拟环境搭建***
+***2.脚本实现***
+
+**对比效果：**
+
+
+**分析：**  
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## 总结：
 
 
 
@@ -218,4 +270,5 @@ int main() {
 
 
 [Ubuntu官方网站]:https://ubuntu.com/desktop   
-[Data Numen]:https://www.datanumen.com/download/
+[Data Numen]:https://www.datanumen.com/download/  
+[performance_data.csv]:

@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 import csv
 import matplotlib.pyplot as plt
+import os
 
 def clean_and_convert_time(time_str):
     """清理时间数据字符串，并尝试将其转换为浮点数。"""
-    # 检查字符串是否包含非数字字符，这些字符可能是由于程序异常终止导致的
     if 'Command' in time_str or 'terminated' in time_str or 'by' in time_str or 'signal' in time_str:
-        return None  # 返回None，表示数据无效
+        return None
     try:
-        # 尝试去除 'u' 或其他非数字字符，并转换为浮点数
-        time_str = time_str.replace('u', '').replace('s', '').replace('t', '').strip()
+        time_str = time_str.split('\n')[-1].replace('u', '').replace('s', '').replace('t', '').strip()
         return float(time_str)
     except ValueError:
-        return None  # 如果转换失败，返回None
+        return None
 
 # 读取CSV文件中的数据
 data = []
-with open('performance_data.csv', 'r') as file:
+csv_file_path = 'performance_data.csv'  # CSV文件名
+with open(csv_file_path, 'r') as file:
     reader = csv.DictReader(file)
     for row in reader:
+        print(f"Reading row: {row}")  # 打印读取的行数据
         row['Algorithm'] = row['Algorithm'].upper()
-        # 使用辅助函数清理和转换时间数据
         row['User Time (s)'] = clean_and_convert_time(row['User Time (s)'])
         row['System Time (s)'] = clean_and_convert_time(row['System Time (s)'])
         row['CPU Time (s)'] = clean_and_convert_time(row['CPU Time (s)'])
         row['Max RSS (MiB)'] = clean_and_convert_time(row['Max RSS (MiB)'])
         if row['Max RSS (MiB)'] is not None:
-            row['Max RSS (MiB)'] /= 1024  # 转换为MiB
+            row['Max RSS (MiB)'] /= 1024
         data.append(row)
 
 # 准备绘图数据
@@ -63,3 +63,14 @@ for metric in metrics:
     plt.close()
 
 print("Plotting complete. Each metric is saved in a separate PNG file.")
+
+# 编译冒泡排序和堆排序程序
+sorting_algorithms = ["bubble_sort.c", "heap_sort.c"]  # 源代码文件名
+for algorithm_file in sorting_algorithms:
+    if not os.path.exists(algorithm_file):
+        print(f"File {algorithm_file} does not exist.")
+    else:
+        print(f"Compiling {algorithm_file}...")
+        # 编译命令，这里假设gcc编译器已安装
+        compilation_command = f"gcc -o {algorithm_file.replace('.c', '')} {algorithm_file}"
+        os.system(compilation_command)
