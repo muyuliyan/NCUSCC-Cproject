@@ -81,14 +81,19 @@ void printFloatArray(float arr[], int size) {
 }
 
 int main() {
-    const char* filenames[] = {"small_data.txt", "medium_data.txt", "large_data.txt", "large_data_float.txt"};
-    int sizes[4];
+    const char* filenames[] = {"small_data.txt", "medium_data.txt", "large_data.txt",
+                               "small_data_float.txt", "medium_data_float.txt", "large_data_float.txt"};
+    int sizes[6];
     int** intArrays = (int**)malloc(3 * sizeof(int*)); // For small, medium, large data
-    float* floatArray = NULL; // For large_data_float.txt
+    float** floatArrays = (float**)malloc(3 * sizeof(float*)); // For small, medium, large float data
 
     // Allocate memory for integer arrays
     for (int i = 0; i < 3; i++) {
         intArrays[i] = (int*)malloc(100000 * sizeof(int));
+        if (intArrays[i] == NULL) {
+            perror("Memory allocation failed");
+            return 1;
+        }
     }
 
     // Read and sort integer data
@@ -99,21 +104,32 @@ int main() {
         printIntArray(intArrays[i], sizes[i]);
     }
 
-    // Allocate memory for float array
-    floatArray = (float*)malloc(100000 * sizeof(float));
+    // Allocate memory for float arrays
+    for (int i = 3; i < 6; i++) {
+        floatArrays[i - 3] = (float*)malloc(100000 * sizeof(float));
+        if (floatArrays[i - 3] == NULL) {
+            perror("Memory allocation failed");
+            return 1;
+        }
+    }
 
     // Read and sort float data
-    sizes[3] = readFloatDataFromFile(filenames[3], floatArray);
-    bubbleSortFloat(floatArray, sizes[3]);
-    printf("Sorted %s: ", filenames[3]);
-    printFloatArray(floatArray, sizes[3]);
+    for (int i = 3; i < 6; i++) {
+        sizes[i] = readFloatDataFromFile(filenames[i], floatArrays[i - 3]);
+        bubbleSortFloat(floatArrays[i - 3], sizes[i]);
+        printf("Sorted %s: ", filenames[i]);
+        printFloatArray(floatArrays[i - 3], sizes[i]);
+    }
 
     // Free memory
     for (int i = 0; i < 3; i++) {
         free(intArrays[i]);
     }
-    free(floatArray);
+    for (int i = 0; i < 3; i++) {
+        free(floatArrays[i]);
+    }
     free(intArrays);
+    free(floatArrays);
 
     return 0;
 }
