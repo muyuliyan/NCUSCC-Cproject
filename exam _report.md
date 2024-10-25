@@ -136,6 +136,7 @@ int main() {
 }  
 ```  
 **运行测试：**  
+先以上述简单数组为例进行测试，后续再导入复杂数据 
 键入
 > gcc -o bubble_test bubble_test.c  
 > ./bubble_test  
@@ -144,34 +145,227 @@ int main() {
 [![pAdGg8e.png](https://s21.ax1x.com/2024/10/22/pAdGg8e.png)](https://imgse.com/i/pAdGg8e)  
 **数据读取的实现**   
 ```  
-    // Read and sort integer data
+   // Read and sort integer data
     for (int i = 0; i < 3; i++) {
         sizes[i] = readIntDataFromFile(filenames[i], intArrays[i]);
         bubbleSortInt(intArrays[i], sizes[i]);
         printf("Sorted %s: ", filenames[i]);
         printIntArray(intArrays[i], sizes[i]);
-    }  
+    }
+
     // Read and sort float data
-    sizes[3] = readFloatDataFromFile(filenames[3], floatArray);
-    bubbleSortFloat(floatArray, sizes[3]);
-    printf("Sorted %s: ", filenames[3]);
-    printFloatArray(floatArray, sizes[3]);
+    for (int i = 3; i < 6; i++) {
+        sizes[i] = readFloatDataFromFile(filenames[i], floatArrays[i - 3]);
+        bubbleSortFloat(floatArrays[i - 3], sizes[i]);
+        printf("Sorted %s: ", filenames[i]);
+        printFloatArray(floatArrays[i - 3], sizes[i]);
+    }
+
 ```
 **<font face="仿宋" font color=bule>对于我所生成的浮点数</font>    
+***2.基础堆排序***  
+**代码实现：基础堆排序主要以一种特殊完全二叉树的数据结构为其基准，实现更为高效的排序；首先进行的是大根堆的数据排序，其次是每次将大根堆堆顶的最大数字与最后存储位的数据交换再排出最大数据，然后继续大根堆排序循环直至排出顺序  
+[![pAwucAe.jpg](https://s21.ax1x.com/2024/10/24/pAwucAe.jpg)](https://imgse.com/i/pAwucAe)
+```  
+// 交换两个整数元素
+void swapInt(int *a, int *b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
 
+// 堆化子树（整数版本）
+void heapifyInt(int arr[], int n, int i) {
+    int largest = i;
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
 
+    if (left < n && arr[left] > arr[largest]) {
+        largest = left;
+    }
+
+    if (right < n && arr[right] > arr[largest]) {
+        largest = right;
+    }
+
+    if (largest != i) {
+        swapInt(&arr[i], &arr[largest]);
+        heapifyInt(arr, n, largest);
+    }
+}  
+// 堆排序（整数版本）
+void heapSortInt(int arr[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        heapifyInt(arr, n, i);
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        swapInt(&arr[0], &arr[i]);
+        heapifyInt(arr, i, 0);
+    }
+}
+```
 **发现问题：**  
-1.数据调用和脚本实现  
+1.数据调用  
+<font face="仿宋" font color=red>2.斐波那契堆排序的代码实现</font>  
+(1)斐波那契堆初始化  
+```
+// 定义节点结构体
+typedef struct Node {
+    int key;                  // 节点的键值
+    struct Node* parent;      // 指向父节点的指针
+    struct Node* child;       // 指向子节点的指针
+    struct Node* left;        // 左兄弟节点
+    struct Node* right;       // 右兄弟节点
+    int degree;               // 节点的度数，即子节点的数量
+    int mark;                 // 用于标记节点是否被删除
+} Node;
+```  
+```
+// 定义斐波那契堆结构体
+typedef struct {
+    Node* min;                // 指向最小节点的指针
+    int total_nodes;          // 堆中节点的总数
+    int total_degree;          // 堆中所有节点的度数之和
+} FibonacciHeap;
+```  
+```  
+// 创建一个新的节点
+Node* createNode(int key) {
+    Node* node = (Node*)malloc(sizeof(Node));
+    if (!node) {
+        perror("Failed to allocate memory for node");
+        exit(EXIT_FAILURE);
+    }
+    node->key = key;
+    node->parent = NULL;
+    node->child = NULL;
+    node->left = node;        // 初始时节点是自己的左兄弟
+    node->right = node;       // 初始时节点是自己的右兄弟
+    node->degree = 0;
+    node->mark = 0;
+    return node;
+}
+```  
+```  
+// 初始化斐波那契堆
+void initFibonacciHeap(FibonacciHeap* heap) {
+    heap->min = NULL;
+    heap->total_nodes = 0;
+    heap->total_degree = 0;
+}  
+```  
+```
+// 将节点添加到斐波那契堆中
+void insertNode(FibonacciHeap* heap, Node* node) {
+    node->left = node;
+    node->right = node;
+    if (heap->min == NULL) {
+        heap->min = node;
+    } else {
+        node->right = heap->min;
+        node->left = heap->min->left;
+        heap->min->left->right = node;
+        heap->min->left = node;
+    }
+    heap->total_nodes++;
+}
+```  
+(2)斐波那契堆的合并和排序  
+```  
+// 合并两个斐波那契堆
+void mergeHeaps(FibonacciHeap* heap1, FibonacciHeap* heap2) {
+    if (heap2->min == NULL) {
+        free(heap2);
+        return;
+    }
+    if (heap1->min == NULL) {
+        *heap1 = *heap2;
+        free(heap2);
+        return;
+    }
+    if (heap1->min->key > heap2->min->key) {
+        Node* temp = heap1->min;
+        heap1->min = heap2->min;
+        heap2->min = temp;
+    }
+    Node* temp_left = heap1->min->left;
+    Node* temp_right = heap1->min->right;
+    temp_left->right = heap2->min;
+    heap2->min->left = temp_left;
+    temp_right->left = heap2->min->right;
+    heap2->min->right = temp_right;
+    heap1->total_nodes += heap2->total_nodes;
+    heap1->total_degree += heap2->total_degree;
+    free(heap2);
+}  
+```  
+```  
+// 提取斐波那契堆中的最小元素
+Node* extractMin(FibonacciHeap* heap) {
+    Node* minNode = heap->min;
+    if (minNode != NULL) {
+        if (minNode->child != NULL) {
+            Node* child = minNode->child;
+            while (child != minNode) {
+                child->parent = NULL;
+                child->mark = 0;
+                insertNode(heap, child);
+                child = child->right;
+            }
+        }
+        if (minNode->left == minNode) {
+            heap->min = NULL;
+        } else {
+            heap->min = minNode->right;
+            minNode->left->right = minNode->right;
+            minNode->right->left = minNode->left;
+        }
+        heap->total_nodes--;
+    }
+    return minNode;
+}  
+```  
+```  
+// 使用斐波那契堆对数组进行排序
+void fibonacciHeapSort(int arr[], int n) {
+    FibonacciHeap heap;
+    initFibonacciHeap(&heap);
 
+    for (int i = 0; i < n; i++) {
+        insertNode(&heap, createNode(arr[i]));
+    }
 
+    for (int i = 0; i < n; i++) {
+        Node* minNode = extractMin(&heap);
+        if (minNode != NULL) {
+            arr[i] = minNode->key;
+            free(minNode);
+        }
+    }
+}
+```
+(3)简单数组进行测试  
+```
+int main() {
+    int arr[] = {12, 11, 13, 5, 6, 7};
+    int n = sizeof(arr) / sizeof(arr[0]);
 
-2.斐波那契堆排序的代码实现  
+    fibonacciHeapSort(arr, n);
 
+    printf("Sorted array: \n");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
 
+    return 0;
+} 
+```
 **解决方案：**  
 1.
-
-
+> const char* filenames[] = {"small_data.txt", "medium_data.txt", "large_data.txt","small_data_float.txt", "medium_data_float.txt", "large_data_float.txt"};  
+直接使用了const char* 类型的指针，指向每一个字符串字面量，进而达到调用文件的目的
 2.
 
 
@@ -218,57 +412,79 @@ ___
 ## 四、不同编译优化等级下的性能对比结果  
 **实验目的：了解表现程序算法优化性能的等级，体会算法优化对不同排序的不同程度，对比冒泡排序和基础堆排序的优化效果，分析二者特点**
 ***1.编译优化等级种类***  
+- O0：没有优化。编译器不会进行任何优化，这通常会导致代码运行得更慢，但编译速度更快，并且生成的二进制文件更容易调试。
+
+- O1：启用基本优化。这是默认的优化等级，它会启用一些不会显著增加编译时间的优化。
+
+- O2：进一步优化。这个等级会启用更多的优化选项，旨在提高程序的运行效率，同时保持合理的编译时间。
+
+- O3：启用更多的优化，包括那些可能会增加编译时间的优化。这个等级包括-O2的所有优化，并添加了更多的优化选项。
+
+- Os：空间优化。这个等级的优化旨在生成更小的二进制文件，可能会牺牲一些运行时性能。
+
+- Ofast：这是一个不标准的优化等级，它启用了所有-O3的优化，并包括一些不安全的优化，比如放宽浮点数精度以换取性能提升。
   
 ***2.性能对比结果***  
 堆排序的运行时间在不同优化等级下变化幅度小且运行时间短，排序效率高，而相较之下冒泡排序时间变化幅度明显，运行时间较长，排序效率较低较为原始  
 > 详细数据可见文件[performance_data.csv]  
 
-
 **发现问题：**  
-1.没有去掉csv文件中的出数字、小数点外的英文字母，导致图像绘制出现阻碍  
+1.因为内存不足或其他原因，没有去掉csv文件中的出数字、小数点外的英文字母，导致图像绘制出现阻碍  
 2.没有理解时间复杂度的表示含义  
 **解决方法：** 
-1.
-2.
+1.可以使用进程异常结束前的数据暂代全程数据使用处理字母作为数据使用  
+> def clean_and_convert_time(time_str):
+2.大致以数学中的函数增长速率快慢来间接理解
 
 ___
 ## 五、数据可视化  
 **实验目的：直观观察感受数据变化和排序算法性能，并掌握搭建虚拟环境使用Python类脚本图库进行可视化的能力**  
-***1.Python虚拟环境搭建***
+***1.Python虚拟环境搭建***  
+搭建Python脚本虚拟环境所需的虚拟软件  
+> sudo apt install python3.12-venv
+  
+创建并命名一个新的虚拟环境  
+> python3 -m venv myenv  
+
+激活虚拟环境  
+> source myenv/bin/activate  
+
+以及退出虚拟环境的指令  
+> deactivate  
+  
+另外，为了以图像的形式呈现，在虚拟环境中安装了pandas库  
+> pip3 install pandas  
+
 ***2.脚本实现***
 
 **对比效果：**
-
-
-**分析：**  
-
-
-
-
-
-## 总结：
+由折线图可以看出冒泡排序的排序时间明显长于堆排序，且波动性大，在不同的数据环境中所用时间具有更大的不确定性，但二者内存占用没有太大差别
+经由折线图的直观展示更能展现两种排序的效率差异  
+图库见[visualization]
+**发现问题：**  
+1.在虚拟环境中运行脚本总是报同样的错，修改后也仍然报错，现仍然不清楚原因，看来只能等深度学习后后续解决了
+## <font face="仿宋" font color=red>总结:</font><font face="仿宋" font color=orange>这次考核我真的学到了很多东西，虽然我的计算机基础真的很差，是个在小县城里十几年没碰过电脑的小白，最多的专业知识也就是在暑假听的80多节C语言网课，但是我也真的很感谢当时的自己，虽然这些基础知识不能让我短时间内成为代码大牛，但好歹是为我的计算机之路垫上了一块敲门砖。</font><font face="仿宋" font color=brown>实际上我的实验做得很坎坷，就算是到了最后即将上交的节点时也仍然有很多问题没有搞透或者没有解决，但是只是顺着自己的路往前走，就算是三不摔两步也终究还是收获了很多知识，像虚拟机的使用，逐渐分清计算机的文件管理逻辑，还有Markdown居然是种语法而不是什么占有软件名词等等，还拓宽了自己视野和对计算机的认识。</font><font face="仿宋" font color=oran>这种学习的状态是我在高中三年所没有体会过的，我会为了项目的失败而难受，但不会为了一两分抓耳挠腮，打开任务要求全是盲区确实让人头皮发麻，但是只要静下心来慢慢学习，慢慢思考，最终我也是勉强搭出了个毛坯房:smile:。</font><font face="仿宋" font color=purple>最后再次感谢牢e的精彩宣讲，让我真正有机会找到一条曲折但最终能通向罗马的道路，挑战自己。就算这次失败了，我相信自己也会沿着这条路继续出发，慢慢走也能走到终点。毕竟我还没看过"金子做"的大机子呢:cry:。</font>
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+附：
+> 仍待解决的问题：  
+> 1.独立完成斐波那契堆排序
+> 2.数据收集的异常中断问题
+> 3.虚拟环境下的卡文本问题
+> 4.学会使用Python写出自己的脚本
+> 5.继续深度学习数据结构，对各种结构有更清晰的认识
+(以下为本人对自己后续需要修正问题的总结)
+  
+特别鸣谢：
+kimi[^1]  
+[howxu]
+(借鉴了浩哥的一些文件命名方式，还有文件存放管理方法
 
 [Ubuntu官方网站]:https://ubuntu.com/desktop   
 [Data Numen]:https://www.datanumen.com/download/  
-[performance_data.csv]:
+[performance_data.csv]:https://github.com/muyuliyan/NCUSCC-Cproject/blob/main/src/performance_data.csv  
+[visualization]:https://github.com/muyuliyan/NCUSCC-Cproject/tree/main/visualization  
+[howxu]:https://github.com/HowXu  
+[^1]:kimi,一款有时人性的人工智能
